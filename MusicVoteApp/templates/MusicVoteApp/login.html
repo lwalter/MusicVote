@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+	<head>MusicVote</head>
+	<body>
+		<h1>Login to MusicVote</h1>
+		<form id="login_form" method="post" action="/login/">
+			{% csrf_token %}
+			Username: <input type="text" name="username" value="" size="50" />
+			Password: <input type="password" name="password" value="" size="50" />
+			<br />
+			<input type="submit" name="submit" value="Login" />
+		</form>
+	</body>
+</html>

@@ -1,0 +1,5 @@
+MusicVote/settings.py
+*pyc
+db.sqlite3
+MusicVoteApp/migrations/*
+*~
