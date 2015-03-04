@@ -7,13 +7,19 @@ class MusicChannelSong(models.Model):
 	song_url  = models.URLField(max_length = 200)
 
 	def __unicode__(self):
-		return "{0}".format(self.song_url)
+		return "{0} [{1}]".format(self.song_name, self.song_url)
 
 class MusicChannel(models.Model):
 	channel_name  = models.CharField(max_length = 20, unique = True)
 	creation_date = models.DateTimeField('date created')
 	slug		  = models.SlugField(unique = True)
 	channel_songs = models.ManyToManyField(MusicChannelSong)
+
+	def add_song(self, new_song):
+		self.channel_songs.add(new_song)
+
+	def get_songs(self):
+		return self.channel_songs.all()
 
 	def save(self, *args, **kwargs):
 		self.slug = slugify(self.channel_name)

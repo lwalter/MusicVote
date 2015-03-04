@@ -1,21 +1,15 @@
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from MusicVoteApp.forms import UserForm, CreateChannelForm, AddChannelSongForm
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.contrib.auth import authenticate, login
 from datetime import datetime
 from MusicVoteApp.models import MusicChannel, MusicChannelSong
+from django.core.urlresolvers import reverse
 
 def index(request):
-	context = RequestContext(request)
-	return render_to_response(
-			'MusicVoteApp/index.html', 
-			context)
+	return render(request, 'MusicVoteApp/index.html')
 
 def register(request):
-	# Get the requests context
-	context = RequestContext(request)
-
 	# Set registered flag to false initially
 	registered = False
 
@@ -41,16 +35,13 @@ def register(request):
 	else:
 		form = UserForm()
 
-	return render_to_response(
-			'MusicVoteApp/register.html', 
-			{'form': form, 'registered': registered},
-			context)
+	return render(
+				request, 
+				'MusicVoteApp/register.html', 
+				{'form': form, 'registered': registered})
 
 def login_user(request):
-	context = RequestContext(request)
-
 	if (request.method == 'POST'):
-		print("Was a POST")
 		# Get the users info and attempt to login
 		username = request.POST['username']
 		password = request.POST['password']
@@ -60,6 +51,10 @@ def login_user(request):
 		if (user):
 			# User provided valid credentials
 			login(request, user)
+
+			# Always return an HttpResponseRedirect after successfully dealing
+			# with POST data. This prevents data from being posted twice if a
+			# user hits the back button
 			return HttpResponseRedirect('/home')
 
 		else:
@@ -69,15 +64,9 @@ def login_user(request):
 			
 	else:
 		# Request is not a POST, so display the login form
-		print("Was a get")
-		return render_to_response(
-					'MusicVoteApp/login.html', 
-					{}, 
-					context)	
+		return render(request, 'MusicVoteApp/login.html')	
 
 def home(request):
-	context = RequestContext(request)
-
 	# Need to show all of the channels that you can connect to...
 	channel_list = MusicChannel.objects.order_by('channel_name')
 
@@ -90,6 +79,9 @@ def home(request):
 			channel = create_channel_form.save(commit = False)
 			channel.creation_date = datetime.now()
 			channel.save()
+
+			# Reverse avoids having to hardcode a URL 
+			return HttpResponseRedirect(reverse('musicchannel', args = (channel.slug,)))
 			
 		else:
 			print(create_channel_form.errors)
@@ -97,19 +89,15 @@ def home(request):
 	else:
 		create_channel_form = CreateChannelForm()
 
-	return render_to_response(
+	return render(request,
 				'MusicVoteApp/home.html',
-				{'user': request.user, 'form': create_channel_form, 'channel_list': channel_list,},
-				context)
+				{'user': request.user, 'form': create_channel_form, 'channel_list': channel_list})
 
 def music_channel(request, music_channel_slug):
-	context = RequestContext(request)
 	context_dict = {}
 
 	if (request.method == 'POST'):
-		print("it was a post....")
-
-		# get the form data and check if its valid
+		# Get the form data and check if its valid
 		# if its valid, set the channel id and save
 		new_song_form = AddChannelSongForm(data = request.POST)
 
@@ -118,33 +106,32 @@ def music_channel(request, music_channel_slug):
 			
 			channel = MusicChannel.objects.get(slug = music_channel_slug)
 
-			new_song = new_song_form.save(commit = False)
+			# TODO: encapsulate some of this logic in the model, "thick models, thin views"
+			new_song = new_song_form.save()
 			channel.channel_songs.add(new_song)
+			new_song_form = AddChannelSongForm()
+
+			context_dict['new_song_form'] = new_song_form
+			context_dict['channel'] = channel
+			context_dict['songs']	= channel.get_songs()
 			
 		else:
 			print(create_channel_form.errors)
 
 	else:
-		print("music channel slug {0}".format(music_channel_slug))
 		try:
 			# Try and find a music channel name slug with the given name
 			channel = MusicChannel.objects.get(slug = music_channel_slug)
 			context_dict['channel'] = channel
 
-			# TODO: need to fix this prefetch query theres an issue here
-			# Use prefetch_related
-			songs = MusicChannelSong.objects.prefetch_related('channel_songs').filter(channel = channel.id)	
-			#songs = MusicChannelSong.objects.all().filter(channel = channel.id)
+			songs = channel.get_songs()
 			context_dict['songs'] = songs
 
 			# Construct the a form to allow a user to enter a song for the channel
 			new_song_form = AddChannelSongForm()
 			context_dict['new_song_form'] = new_song_form
 
-		except MusicChannel.DoesNotExist:
-			pass
+		except (KeyError, MusicChannel.DoesNotExist):
+			raise Http404("MusicChannel does not exist")
 
-	return render_to_response(
-				'MusicVoteApp/musicchannel.html', 
-				context_dict, 
-				context)
+	return render(request, 'MusicVoteApp/musicchannel.html', context_dict)

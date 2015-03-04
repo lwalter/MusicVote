@@ -17,8 +17,8 @@ class CreateChannelForm(forms.ModelForm):
 		fields = ('channel_name',)
 
 class AddChannelSongForm(forms.ModelForm):
-	song_name = forms.CharField(widget = forms.TextInput())
+	song_url = forms.CharField(widget = forms.TextInput())
 
 	class Meta:
 		model = MusicChannelSong
-		fields = ('song_name',)
+		fields = ('song_url',)
