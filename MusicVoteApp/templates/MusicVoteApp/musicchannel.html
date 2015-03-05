@@ -6,7 +6,8 @@
         {% if songs %}
         <ul>
             {% for song in songs %}
-            <li>{{ song.song_name }}</li>
+                <video width="560" height="345" src="{{ song|safe }}"></video>
+                <li>{{ song.song_url }}</li>
             {% endfor %}
         </ul>
         {% endif %}

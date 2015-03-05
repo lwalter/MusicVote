@@ -100,23 +100,23 @@ def music_channel(request, music_channel_slug):
         # Get the form data and check if its valid
         # if its valid, set the channel id and save
         new_song_form = AddChannelSongForm(data = request.POST)
+        channel = MusicChannel.objects.get(slug = music_channel_slug)
+
+        context_dict['new_song_form'] = new_song_form
+        context_dict['channel'] = channel
+        context_dict['songs']   = channel.get_songs()
 
         if (new_song_form.is_valid()):
             print("form has valid information")
-            
-            channel = MusicChannel.objects.get(slug = music_channel_slug)
 
             # TODO: encapsulate some of this logic in the model, "thick models, thin views"
             new_song = new_song_form.save()
             channel.channel_songs.add(new_song)
             new_song_form = AddChannelSongForm()
 
-            context_dict['new_song_form'] = new_song_form
-            context_dict['channel'] = channel
-            context_dict['songs']   = channel.get_songs()
             
         else:
-            print(create_channel_form.errors)
+            print(new_song_form.errors)
 
     else:
         try:
