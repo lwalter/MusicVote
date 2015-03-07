@@ -1,7 +1,6 @@
-<!DOCTYPE html>
-<html>
-    <head></head>
-    <body>
+{% extends "MusicVoteApp/base.html" %}
+{% block content %}
+    <section>
         <h1>Welcome, {{ user.username }}</h1>
 
         {% if channel_list %}
@@ -16,5 +15,5 @@
             {{ form.as_p }}
             <input type="submit" name="submit" value="Create channel" />
         </form>
-    </body>
-</html>
+    </section>
+{% endblock %}

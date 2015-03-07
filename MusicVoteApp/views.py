@@ -5,9 +5,16 @@ from django.contrib.auth import authenticate, login
 from datetime import datetime
 from MusicVoteApp.models import MusicChannel, MusicChannelSong
 from django.core.urlresolvers import reverse
+from django.utils.safestring import mark_safe
 
 def index(request):
-    return render(request, 'MusicVoteApp/index.html')
+    # If user is already authenticated then redirect to the home page
+    if (request.user.is_authenticated()):
+        return HttpResponseRedirect('/home')
+    else:
+        return render(request, page_to_render)
+
+    
 
 def register(request):
     # Set registered flag to false initially
@@ -100,11 +107,14 @@ def music_channel(request, music_channel_slug):
         # Get the form data and check if its valid
         # if its valid, set the channel id and save
         new_song_form = AddChannelSongForm(data = request.POST)
-        channel = MusicChannel.objects.get(slug = music_channel_slug)
+        channel       = MusicChannel.objects.get(slug = music_channel_slug)
+        songs         = channel.get_songs()
 
         context_dict['new_song_form'] = new_song_form
-        context_dict['channel'] = channel
-        context_dict['songs']   = channel.get_songs()
+        context_dict['channel']       = channel
+        context_dict['songs']         = songs
+        context_dict['song_to_play']  = songs[0]
+        #context_dict['song_iframe']   = mark_safe('<iframe width="560" height="345" src="http://www.youtube.com/embed/7KfKft2lcog"></iframe>')
 
         if (new_song_form.is_valid()):
             print("form has valid information")
@@ -130,6 +140,9 @@ def music_channel(request, music_channel_slug):
             # Construct the a form to allow a user to enter a song for the channel
             new_song_form = AddChannelSongForm()
             context_dict['new_song_form'] = new_song_form
+
+            context_dict['song_to_play'] = songs[0]
+            #context_dict['song_iframe']      = mark_safe('<iframe width="560" height="345" src="http://www.youtube.com/embed/7KfKft2lcog"></iframe>')
 
         except (KeyError, MusicChannel.DoesNotExist):
             raise Http404("MusicChannel does not exist")

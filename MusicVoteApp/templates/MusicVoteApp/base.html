@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+
+{% load staticfiles %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'MusicVoteApp/style.css' %}" />
+<html>
+    <head>
+        <title>MusicVote</title>
+        <section role="banner" id="header-bar">
+            <header>
+                <h1>MusicVote</h1>
+                <h2>Welcome to social listening</h2>
+                <ul id="header-link-bar">
+                    <li><a href="/home/">Home</a></li>
+                    <li><a href="/about/">About</a></li>
+                </ul>
+            </header>
+        </section>
+    </head>
+    <body>
+        {% block content %}{% endblock %}
+    </body>
+</html>

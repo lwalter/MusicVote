@@ -1,0 +1,46 @@
+header h1 {
+	display: inline;
+	color: #FFFFFF;
+	padding: 30px;
+}
+
+header h2 {
+	display: inline;
+	color: #FFFFFF;
+}
+
+#header-bar {
+    height: 40px;
+    background: #479EB3;
+    position: fixed;
+    top: 0;
+    width: 100%;
+}
+
+#header-link-bar {
+	float: right;
+	display: inline;
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: : hidden;
+}
+
+li {
+	float: left;
+}
+
+a:link, a:visited {
+    display: block;
+    width: 120px;
+    font-weight: bold;
+    color: #FFFFFF;
+    background-color: #479EB3;
+    text-align: center;
+    padding: 4px;
+    text-decoration: none;
+}
+
+a:hover, a:active {
+    background-color: #397E8F;
+}
