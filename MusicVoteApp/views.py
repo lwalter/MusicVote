@@ -1,20 +1,26 @@
 from django.shortcuts import render
 from MusicVoteApp.forms import UserForm, CreateChannelForm, AddChannelSongForm
 from django.http import HttpResponseRedirect, HttpResponse, Http404
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from datetime import datetime
 from MusicVoteApp.models import MusicChannel, MusicChannelSong
 from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
+import json
 
 def index(request):
     # If user is already authenticated then redirect to the home page
     if (request.user.is_authenticated()):
         return HttpResponseRedirect('/home')
     else:
-        return render(request, page_to_render)
+        return render(request, 'MusicVoteApp/index.html')
 
-    
+# Use decorator to ensure that only those who are logged in can see the view
+@login_required
+def logout_user(request):
+    logout(request)
+    return HttpResponseRedirect('/')
 
 def register(request):
     # Set registered flag to false initially
@@ -73,6 +79,7 @@ def login_user(request):
         # Request is not a POST, so display the login form
         return render(request, 'MusicVoteApp/login.html')   
 
+@login_required
 def home(request):
     # Need to show all of the channels that you can connect to...
     channel_list = MusicChannel.objects.order_by('channel_name')
@@ -81,13 +88,11 @@ def home(request):
         create_channel_form = CreateChannelForm(data = request.POST)
 
         if (create_channel_form.is_valid()):
-            print("form has valid information")
-            
             channel = create_channel_form.save(commit = False)
             channel.creation_date = datetime.now()
             channel.save()
 
-            # Reverse avoids having to hardcode a URL 
+            # Reverse avoids having to hardcode a URL w/ params
             return HttpResponseRedirect(reverse('musicchannel', args = (channel.slug,)))
             
         else:
@@ -100,6 +105,7 @@ def home(request):
                 'MusicVoteApp/home.html',
                 {'user': request.user, 'form': create_channel_form, 'channel_list': channel_list})
 
+@login_required
 def music_channel(request, music_channel_slug):
     context_dict = {}
 
@@ -113,17 +119,16 @@ def music_channel(request, music_channel_slug):
         context_dict['new_song_form'] = new_song_form
         context_dict['channel']       = channel
         context_dict['songs']         = songs
-        #context_dict['song_iframe']   = mark_safe('<iframe width="560" height="345" src="http://www.youtube.com/embed/7KfKft2lcog"></iframe>')
+
+        if (songs):
+            context_dict['song_to_play'] = songs[0].get_iframe()
 
         if (new_song_form.is_valid()):
-            print("form has valid information")
-
             # TODO: encapsulate some of this logic in the model, "thick models, thin views"
             new_song = new_song_form.save()
             channel.channel_songs.add(new_song)
             new_song_form = AddChannelSongForm()
-
-            context_dict['song_to_play']  = new_song
+            context_dict['song_to_play'] = new_song.get_iframe()
             
         else:
             print(new_song_form.errors)
@@ -138,13 +143,11 @@ def music_channel(request, music_channel_slug):
             context_dict['songs'] = songs
 
             if (songs):
-                context_dict['song_to_play'] = songs[0]
+                context_dict['song_to_play'] = songs[0].get_iframe()
 
             # Construct the a form to allow a user to enter a song for the channel
             new_song_form = AddChannelSongForm()
             context_dict['new_song_form'] = new_song_form
-
-            #context_dict['song_iframe']      = mark_safe('<iframe width="560" height="345" src="http://www.youtube.com/embed/7KfKft2lcog"></iframe>')
 
         except (KeyError, MusicChannel.DoesNotExist):
             raise Http404("MusicChannel does not exist")

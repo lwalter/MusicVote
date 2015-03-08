@@ -1,7 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head></head>
-<body>
+{% extends "MusicVoteApp/base.html" %}
+{% block content %}
     <h2>Register an account</h2>
     {% if registered %}
     Thank you for registering!
@@ -16,5 +14,4 @@
         <input type = "submit" name = "submit" value = "Register" />
     </form>
     {% endif %}
-</body>
-</html>
+{% endblock %}

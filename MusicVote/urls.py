@@ -8,5 +8,6 @@ urlpatterns = patterns('',
     url(r'^login/$', views.login_user, name = 'login'),
     url(r'^home/$', views.home, name = 'home'),
     url(r'^musicchannel/(?P<music_channel_slug>[\w\-]+)/$', views.music_channel, name = 'musicchannel'),
+    url(r'^logout_user/$', views.logout_user, name = 'logout_user'),
     url(r'^admin/', include(admin.site.urls)),
 )

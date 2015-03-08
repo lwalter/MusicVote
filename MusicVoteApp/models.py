@@ -4,9 +4,20 @@ from django.template.defaultfilters import slugify
 
 class MusicChannelSong(models.Model):
     song_url  = models.URLField(max_length = 200)
+    video_id  = models.CharField(max_length = 100)
+
+    def get_iframe(self):
+        return "<iframe id='player' type='text/html' width='640' height='390' src='http://www.youtube.com/embed/{0}?enablejsapi=1' frameborder='0'></iframe>".format(self.video_id)
+
+    def slice_video_id(self):
+        return self.song_url.split("v=")[1]
+
+    def save(self, *args, **kwargs):
+        self.video_id = self.slice_video_id()
+        super(MusicChannelSong, self).save(*args, **kwargs)
 
     def __unicode__(self):
-        return "{0}".format(self.song_url)
+        return "{0}".format(self.video_id)
 
 class MusicChannel(models.Model):
     channel_name  = models.CharField(max_length = 20, unique = True)

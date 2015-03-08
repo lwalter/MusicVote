@@ -1,3 +1,6 @@
-<h1>Welcome to MusicVote</h1>
+{% extends "MusicVoteApp/base.html" %}
+
+{% block content %}
 <a href="{% url 'register' %}">Register</a>
 <a href="{% url 'login' %}">Login</a>
+{% endblock %}
