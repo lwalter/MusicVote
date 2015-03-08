@@ -1,11 +1,19 @@
 {% extends "MusicVoteApp/base.html" %}
 
 {% block content %}
+    <script type="text/javascript" src="https://www.youtube.com/player_api">
+        window.onload=function(){
+            var player = new YT.Player('ytplayer', {
+                height: '390',
+                width: '640',
+                videoId: 'ULqdjtDI-bs'
+            });
+    </script>
+    <div id="ytplayer"></div>
     <div>
         <h1>{{ channel.channel_name }}</h1>
-
-        <video width="560" height="345" src="{{ song_to_play|safe }}"></video>
         {% if songs %}
+        <iframe width="560" height="345" src="{{ song_to_play }}"></iframe>
         <ul>
             {% for song in songs %}
                 <li>{{ song.song_url }}</li>

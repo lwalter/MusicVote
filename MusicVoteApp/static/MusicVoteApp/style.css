@@ -1,46 +1,52 @@
-header h1 {
-	display: inline;
-	color: #FFFFFF;
-	padding: 30px;
-}
-
-header h2 {
-	display: inline;
-	color: #FFFFFF;
-}
-
-#header-bar {
-    height: 40px;
+#menu {
     background: #479EB3;
-    position: fixed;
-    top: 0;
+    color: #FFFFFF;
     width: 100%;
+    height: 85px;
 }
 
-#header-link-bar {
-	float: right;
-	display: inline;
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	overflow: : hidden;
+#menu h1 {
+    display: inline;
+    padding: 20px;
+    padding-top-top: 20px;
+    font-weight: bold;
+    font-size: 50px;
 }
 
-li {
-	float: left;
+#menu h2 {
+    display: inline;
 }
 
-a:link, a:visited {
-    display: block;
+#menu ul {
+    height: auto;
+    padding: 8px 0px;
+    margin: 50px;
+    display: inline;
+    list-style-type: none;
+}
+
+#menu li {
+    display: inline;
+    color: #FFFFFF;   
+}
+
+#menu a {
+    display: inline-block;
     width: 120px;
     font-weight: bold;
+    padding: 0px;
     color: #FFFFFF;
     background-color: #479EB3;
     text-align: center;
-    padding: 4px;
     text-decoration: none;
 }
 
-a:hover, a:active {
+#menu a:hover, a:active {
     background-color: #397E8F;
+}
+
+#channel ul {
+    margin-left: 0px;
+    height: auto;
+    list-style-type: none;
 }

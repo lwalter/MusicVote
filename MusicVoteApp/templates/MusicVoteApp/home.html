@@ -1,8 +1,10 @@
 {% extends "MusicVoteApp/base.html" %}
 {% block content %}
-    <section>
+    <div>
         <h1>Welcome, {{ user.username }}</h1>
-
+    </div>
+    <div id="channel">
+        <h2>Channels</h2>
         {% if channel_list %}
         <ul>
             {% for channel in channel_list %}
@@ -10,10 +12,12 @@
             {% endfor %}
         </ul>
         {% endif %}
+    </div>
+    <div>
         <form id = "create_channel_form" method = "post" action = "/home/">
             {% csrf_token %}
             {{ form.as_p }}
             <input type="submit" name="submit" value="Create channel" />
         </form>
-    </section>
+    </div>
 {% endblock %}

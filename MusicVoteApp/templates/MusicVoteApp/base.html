@@ -3,19 +3,18 @@
 {% load staticfiles %}
 
 <link rel="stylesheet" type="text/css" href="{% static 'MusicVoteApp/style.css' %}" />
+<script src="{% static 'MusicVoteApp/jquery-1.11.2.min.js' %}" type="text/javascript"></script>
 <html>
     <head>
         <title>MusicVote</title>
-        <section role="banner" id="header-bar">
-            <header>
-                <h1>MusicVote</h1>
-                <h2>Welcome to social listening</h2>
-                <ul id="header-link-bar">
-                    <li><a href="/home/">Home</a></li>
-                    <li><a href="/about/">About</a></li>
-                </ul>
-            </header>
-        </section>
+        <div id="menu">
+            <h1>MusicVote</h1>
+            <h2>Welcome to social listening</h2>
+            <ul>
+                <li><a href="/home/">Home</a></li>
+                <li><a href="/about/">About</a></li>
+            </ul>
+        </div>
     </head>
     <body>
         {% block content %}{% endblock %}

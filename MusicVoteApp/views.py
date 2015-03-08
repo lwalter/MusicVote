@@ -113,7 +113,6 @@ def music_channel(request, music_channel_slug):
         context_dict['new_song_form'] = new_song_form
         context_dict['channel']       = channel
         context_dict['songs']         = songs
-        context_dict['song_to_play']  = songs[0]
         #context_dict['song_iframe']   = mark_safe('<iframe width="560" height="345" src="http://www.youtube.com/embed/7KfKft2lcog"></iframe>')
 
         if (new_song_form.is_valid()):
@@ -124,6 +123,7 @@ def music_channel(request, music_channel_slug):
             channel.channel_songs.add(new_song)
             new_song_form = AddChannelSongForm()
 
+            context_dict['song_to_play']  = new_song
             
         else:
             print(new_song_form.errors)
@@ -137,11 +137,13 @@ def music_channel(request, music_channel_slug):
             songs = channel.get_songs()
             context_dict['songs'] = songs
 
+            if (songs):
+                context_dict['song_to_play'] = songs[0]
+
             # Construct the a form to allow a user to enter a song for the channel
             new_song_form = AddChannelSongForm()
             context_dict['new_song_form'] = new_song_form
 
-            context_dict['song_to_play'] = songs[0]
             #context_dict['song_iframe']      = mark_safe('<iframe width="560" height="345" src="http://www.youtube.com/embed/7KfKft2lcog"></iframe>')
 
         except (KeyError, MusicChannel.DoesNotExist):
