@@ -1,20 +1,26 @@
 {% extends "MusicVoteApp/base.html" %}
-
 {% block content %}
+{% load static %}
+<script src="{% static 'MusicVoteApp/musicChannelLib.js' %}"></script>
+<script src="{% static 'MusicVoteApp/ajaxCookieEmbed.js' %}"></script>
+<body>
+{% csrf_token %}
     <div>
-        <h1>{{ channel.channel_name }}</h1>
+        <h1 id="channel-title" value="{{ channel.slug }}">{{ channel.channel_name }}</h1>
         {% if songs %}
-        <ul>
-            {% for song in songs %}
-                <li>{{ song.song_url }}</li>
-            {% endfor %}
-        </ul>
+        <div id="song-list">
+            <ul>
+                {% for song in songs %}
+                    <li>{{ song.song_url }}</li><button type="button" class="voteBtn" value="{{ song }}">Vote</button>
+                {% endfor %}
+            </ul>
+        </div>
         {% endif %}
         {{ song_to_play|safe }}
         <form id = "new_song_form" method = "post" action = "/musicchannel/{{ channel.slug }}/">
-            {% csrf_token %}
             {{ new_song_form.as_p }}
             <input type="submit" name="submit" value="Add song" />
         </form>
     </div>
+</body>
 {% endblock %}

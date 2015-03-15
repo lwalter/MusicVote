@@ -6,12 +6,12 @@ from django.contrib.auth.decorators import login_required
 from datetime import datetime
 from MusicVoteApp.models import MusicChannel, MusicChannelSong
 from django.core.urlresolvers import reverse
-from django.utils.safestring import mark_safe
-import json
 
 def index(request):
+    """ Handles index requests. """
+
     # If user is already authenticated then redirect to the home page
-    if (request.user.is_authenticated()):
+    if request.user.is_authenticated():
         return HttpResponseRedirect('/home')
     else:
         return render(request, 'MusicVoteApp/index.html')
@@ -19,49 +19,44 @@ def index(request):
 # Use decorator to ensure that only those who are logged in can see the view
 @login_required
 def logout_user(request):
+    """ Handles requests for logging out a user. """
     logout(request)
     return HttpResponseRedirect('/')
 
 def register(request):
+    """ Handles requests on the register page. """
+
     # Set registered flag to false initially
     registered = False
 
     # If its an HTTP POST, lets process the forms data
-    if (request.method == 'POST'):
+    if request.method == 'POST':
         form = UserForm(data = request.POST)
 
         # If the form is valid...
-        if (form.is_valid()):
+        if form.is_valid():
             # Save the users form to the database
             user = form.save()
-
             user.set_password(user.password)
             user.save()
-
             registered = True
-        
-        # Something went wrong
         else:
-            print(form.errors)
-
-    # Its not an HTTP POST, so lets just render a blank form
+            print form.errors
     else:
         form = UserForm()
 
-    return render(
-                request, 
-                'MusicVoteApp/register.html', 
-                {'form': form, 'registered': registered})
+    return render(request, 'MusicVoteApp/register.html', {'form': form, 'registered': registered})
 
 def login_user(request):
-    if (request.method == 'POST'):
+    """ Handles requests for the login page. """
+
+    if request.method == 'POST':
         # Get the users info and attempt to login
         username = request.POST['username']
         password = request.POST['password']
-
         user = authenticate(username = username, password = password)
 
-        if (user):
+        if user is not None:
             # User provided valid credentials
             login(request, user)
 
@@ -69,87 +64,94 @@ def login_user(request):
             # with POST data. This prevents data from being posted twice if a
             # user hits the back button
             return HttpResponseRedirect('/home')
-
         else:
             # User provided bad credentials
-            print("Invalid login credentials: {0}, {1}".format(username, password))
-            return HttpResponse("Invalid login details supplied.")  
-            
+            print "Invalid login credentials: {0}, {1}".format(username, password)
+            return HttpResponse("Invalid login details supplied.")       
     else:
         # Request is not a POST, so display the login form
         return render(request, 'MusicVoteApp/login.html')   
 
 @login_required
 def home(request):
+    """ Handles requests for the home page. """
+
     # Need to show all of the channels that you can connect to...
     channel_list = MusicChannel.objects.order_by('channel_name')
 
-    if (request.method == 'POST'):
+    if request.method == 'POST':
         create_channel_form = CreateChannelForm(data = request.POST)
 
-        if (create_channel_form.is_valid()):
+        if create_channel_form.is_valid():
             channel = create_channel_form.save(commit = False)
             channel.creation_date = datetime.now()
             channel.save()
 
             # Reverse avoids having to hardcode a URL w/ params
             return HttpResponseRedirect(reverse('musicchannel', args = (channel.slug,)))
-            
         else:
-            print(create_channel_form.errors)
+            print create_channel_form.errors
 
     else:
         create_channel_form = CreateChannelForm()
 
-    return render(request,
-                'MusicVoteApp/home.html',
-                {'user': request.user, 'form': create_channel_form, 'channel_list': channel_list})
+    return render(request, 'MusicVoteApp/home.html', {'user': request.user, 'form': create_channel_form, 'channel_list': channel_list})
 
 @login_required
 def music_channel(request, music_channel_slug):
+    """ Handles requests for music channels.  """
+
     context_dict = {}
 
-    if (request.method == 'POST'):
+    if request.method == 'POST':
         # Get the form data and check if its valid
         # if its valid, set the channel id and save
         new_song_form = AddChannelSongForm(data = request.POST)
-        channel       = MusicChannel.objects.get(slug = music_channel_slug)
-        songs         = channel.get_songs()
+        channel = MusicChannel.objects.get(slug = music_channel_slug)
+        songs = channel.get_songs()
 
         context_dict['new_song_form'] = new_song_form
-        context_dict['channel']       = channel
-        context_dict['songs']         = songs
+        context_dict['channel'] = channel
+        context_dict['songs'] = songs
 
-        if (songs):
-            context_dict['song_to_play'] = songs[0].get_iframe()
+        if song_to_play is not None:
+            context_dict['song_to_play'] = song_to_play.get_iframe()
 
-        if (new_song_form.is_valid()):
-            # TODO: encapsulate some of this logic in the model, "thick models, thin views"
+        if new_song_form.is_valid():
             new_song = new_song_form.save()
             channel.channel_songs.add(new_song)
             new_song_form = AddChannelSongForm()
             context_dict['song_to_play'] = new_song.get_iframe()
-            
         else:
-            print(new_song_form.errors)
+            print new_song_form.errors
 
     else:
         try:
             # Try and find a music channel name slug with the given name
+            new_song_form = AddChannelSongForm()
             channel = MusicChannel.objects.get(slug = music_channel_slug)
-            context_dict['channel'] = channel
-
             songs = channel.get_songs()
+
+            context_dict['new_song_form'] = new_song_form
+            context_dict['channel'] = channel
             context_dict['songs'] = songs
 
-            if (songs):
-                context_dict['song_to_play'] = songs[0].get_iframe()
+            song_to_play = channel.get_first_song()
 
-            # Construct the a form to allow a user to enter a song for the channel
-            new_song_form = AddChannelSongForm()
-            context_dict['new_song_form'] = new_song_form
+            if song_to_play is not None:
+                context_dict['song_to_play'] = song_to_play.get_iframe()
 
-        except (KeyError, MusicChannel.DoesNotExist):
+        except KeyError, MusicChannel.DoesNotExist:
             raise Http404("MusicChannel does not exist")
 
     return render(request, 'MusicVoteApp/musicchannel.html', context_dict)
+
+def vote(request):
+    """ Handles voting posts for songs. """
+    
+    if request.is_ajax() and 'song' in request.POST and 'musicchannel' in request.POST:
+        musicchannel = request.POST.get('musicchannel')
+        song = request.POST.get('song')
+        print musicchannel, song
+
+    return render(request, 'MusicVoteApp/musicchannel.html')

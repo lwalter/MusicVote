@@ -13,7 +13,6 @@ class CreateChannelForm(forms.ModelForm):
     channel_name = forms.CharField(widget = forms.TextInput())
     class Meta:
         model = MusicChannel
-        #exclude = ('slug',)
         fields = ('channel_name',)
 
 class AddChannelSongForm(forms.ModelForm):

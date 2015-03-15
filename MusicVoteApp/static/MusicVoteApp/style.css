@@ -50,3 +50,11 @@
     height: auto;
     list-style-type: none;
 }
+
+#song-list ul {
+    list-style-type: none;
+    right: 0;
+}
+
+#song-list li {
+}
