@@ -5,7 +5,11 @@ from django.template.defaultfilters import slugify
 class MusicChannelSong(models.Model):
     song_url = models.URLField(max_length = 200)
     video_id = models.CharField(max_length = 100)
-    votes = models.IntegerField()
+    votes = models.IntegerField(default = 0)
+
+    def increment_votes(self):
+        self.votes += 1
+        self.save()
 
     def get_iframe(self):
         return "<iframe id='player' type='text/html' width='640' height='390' src='http://www.youtube.com/embed/{0}?enablejsapi=1' frameborder='0'></iframe>".format(self.video_id)
@@ -14,7 +18,9 @@ class MusicChannelSong(models.Model):
         return self.song_url.split("v=")[1]
 
     def save(self, *args, **kwargs):
-        self.video_id = self.slice_video_id()
+        if self.video_id == "": 
+            self.video_id = self.slice_video_id()
+
         super(MusicChannelSong, self).save(*args, **kwargs)
 
     def __unicode__(self):
@@ -25,6 +31,14 @@ class MusicChannel(models.Model):
     creation_date = models.DateTimeField('date created')
     slug = models.SlugField(unique = True)
     channel_songs = models.ManyToManyField(MusicChannelSong)
+
+    def song_exists(self, song_url):
+        song_exists = False
+        if self.channel_songs is not None:
+            if self.channel_songs.filter(song_url=song_url).count() > 0:
+                song_exists = True
+
+        return song_exists
 
     def get_first_song(self):
         if self.channel_songs is not None:

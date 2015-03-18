@@ -6,18 +6,19 @@
 <body>
 {% csrf_token %}
     <div>
-        <h1 id="channel-title" value="{{ channel.slug }}">{{ channel.channel_name }}</h1>
+        <h1 id="channel-title" data-channel-id="{{ channel.id }}">{{ channel.channel_name }}</h1>
         {% if songs %}
         <div id="song-list">
             <ul>
                 {% for song in songs %}
-                    <li>{{ song.song_url }}</li><button type="button" class="voteBtn" value="{{ song }}">Vote</button>
+                    <li>{{ song.song_url }}   {{ song.votes }}</li><button type="button" class="voteBtn" value="{{ song }}">Vote</button>
                 {% endfor %}
             </ul>
         </div>
         {% endif %}
         {{ song_to_play|safe }}
         <form id = "new_song_form" method = "post" action = "/musicchannel/{{ channel.slug }}/">
+            {% csrf_token %}
             {{ new_song_form.as_p }}
             <input type="submit" name="submit" value="Add song" />
         </form>

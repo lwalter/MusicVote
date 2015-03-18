@@ -31,7 +31,7 @@ def register(request):
 
     # If its an HTTP POST, lets process the forms data
     if request.method == 'POST':
-        form = UserForm(data = request.POST)
+        form = UserForm(data=request.POST)
 
         # If the form is valid...
         if form.is_valid():
@@ -54,7 +54,7 @@ def login_user(request):
         # Get the users info and attempt to login
         username = request.POST['username']
         password = request.POST['password']
-        user = authenticate(username = username, password = password)
+        user = authenticate(username=username, password=password)
 
         if user is not None:
             # User provided valid credentials
@@ -80,15 +80,15 @@ def home(request):
     channel_list = MusicChannel.objects.order_by('channel_name')
 
     if request.method == 'POST':
-        create_channel_form = CreateChannelForm(data = request.POST)
+        create_channel_form = CreateChannelForm(data=request.POST)
 
         if create_channel_form.is_valid():
-            channel = create_channel_form.save(commit = False)
+            channel = create_channel_form.save(commit=False)
             channel.creation_date = datetime.now()
             channel.save()
 
             # Reverse avoids having to hardcode a URL w/ params
-            return HttpResponseRedirect(reverse('musicchannel', args = (channel.slug,)))
+            return HttpResponseRedirect(reverse('musicchannel', args=(channel.slug,)))
         else:
             print create_channel_form.errors
 
@@ -106,9 +106,10 @@ def music_channel(request, music_channel_slug):
     if request.method == 'POST':
         # Get the form data and check if its valid
         # if its valid, set the channel id and save
-        new_song_form = AddChannelSongForm(data = request.POST)
-        channel = MusicChannel.objects.get(slug = music_channel_slug)
+        new_song_form = AddChannelSongForm(data=request.POST)
+        channel = MusicChannel.objects.get(slug=music_channel_slug)
         songs = channel.get_songs()
+        song_to_play = channel.get_first_song()
 
         context_dict['new_song_form'] = new_song_form
         context_dict['channel'] = channel
@@ -118,10 +119,13 @@ def music_channel(request, music_channel_slug):
             context_dict['song_to_play'] = song_to_play.get_iframe()
 
         if new_song_form.is_valid():
-            new_song = new_song_form.save()
-            channel.channel_songs.add(new_song)
-            new_song_form = AddChannelSongForm()
-            context_dict['song_to_play'] = new_song.get_iframe()
+            new_song = new_song_form.save(commit=False)
+
+            if not channel.song_exists(new_song.song_url):
+                new_song.save()
+                channel.channel_songs.add(new_song)
+                new_song_form = AddChannelSongForm()
+                context_dict['song_to_play'] = new_song.get_iframe()
         else:
             print new_song_form.errors
 
@@ -129,7 +133,7 @@ def music_channel(request, music_channel_slug):
         try:
             # Try and find a music channel name slug with the given name
             new_song_form = AddChannelSongForm()
-            channel = MusicChannel.objects.get(slug = music_channel_slug)
+            channel = MusicChannel.objects.get(slug=music_channel_slug)
             songs = channel.get_songs()
 
             context_dict['new_song_form'] = new_song_form
@@ -148,10 +152,18 @@ def music_channel(request, music_channel_slug):
 
 def vote(request):
     """ Handles voting posts for songs. """
-    
-    if request.is_ajax() and 'song' in request.POST and 'musicchannel' in request.POST:
-        musicchannel = request.POST.get('musicchannel')
-        song = request.POST.get('song')
-        print musicchannel, song
 
+    if request.is_ajax() and 'song' in request.POST and 'musicchannel' in request.POST:
+        musicchannel_id = request.POST.get('musicchannel')
+        song_id = request.POST.get('song')
+
+        try:
+            musicchannel = MusicChannel.objects.get(id=musicchannel_id)
+            song = musicchannel.channel_songs.filter(video_id=song_id).get()
+            song.increment_votes()
+        
+        # TODO parse out exceptions (DoesNotExist, multiple returns?)
+        except Exception as e:
+            print e.message
+    
     return render(request, 'MusicVoteApp/musicchannel.html')
