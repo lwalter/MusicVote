@@ -162,6 +162,7 @@ def vote(request):
             song = musicchannel.channel_songs.filter(video_id=song_id).get()
             song.increment_votes()
         
+        # TODO need to update votes element on page
         # TODO parse out exceptions (DoesNotExist, multiple returns?)
         except Exception as e:
             print e.message
