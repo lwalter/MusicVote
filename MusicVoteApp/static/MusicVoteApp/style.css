@@ -51,10 +51,35 @@
     list-style-type: none;
 }
 
-#song-list ul {
+#song-list table {
+    float: right;
+    position: relative;
     list-style-type: none;
-    right: 0;
 }
 
-#song-list li {
+#song-list div {
+    background: #eee8e8;
+}
+
+#video div {
+    float: left;
+    position: relative;
+}
+
+#playlist div {
+    float: right;
+    position: relative;
+}
+
+#playlist h2 {
+    float: right;
+    position: relative;
+}
+
+#add-song div {
+    float: right;
+}
+
+td {
+    padding: 5px;
 }

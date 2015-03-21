@@ -132,6 +132,7 @@ def music_channel(request, music_channel_slug):
             new_song_form = AddChannelSongForm()
             channel = MusicChannel.objects.get(slug=music_channel_slug)
             songs = channel.get_songs()
+            #users = channel.get_users()
 
             context_dict['new_song_form'] = new_song_form
             context_dict['channel'] = channel
@@ -171,11 +172,17 @@ def get_next_song(request):
         musicchannel_id = request.GET.get('musicchannel')
         song_id = request.GET.get('song')
 
+        # Try and locate the music channel and song to remove
         try:
             musicchannel = MusicChannel.objects.get(id=musicchannel_id)
             song = musicchannel.get_song_by_video_id(song_id)
             musicchannel.remove_song(song.id)
-            
+
+        except Exception as e:
+            print e.message
+
+        # Try and get the next song to play
+        try:
             next_song = musicchannel.get_first_song()
             next_video_id = next_song.video_id
 

@@ -29,6 +29,7 @@ class MusicChannel(models.Model):
     creation_date = models.DateTimeField('date created')
     slug = models.SlugField(unique = True)
     channel_songs = models.ManyToManyField(MusicChannelSong)
+    users = models.ManyToManyField(User)
 
     def song_exists(self, song_url):
         song_exists = False
@@ -54,14 +55,36 @@ class MusicChannel(models.Model):
         self.channel_songs.add(new_song)
 
     def remove_song(self, song_id):
+        removed = False
         if self.channel_songs is not None:
             try:
                 self.channel_songs.get(id=song_id).delete()
+                removed = True
             except Exception as e:
                 print "Could not delete song: {0}".format()
 
+        return removed
+
     def get_songs(self):
         return self.channel_songs.order_by('votes').all()
+
+    def add_user(self, user):
+        self.users.add(user)
+
+    def remove_user(self, user):
+        removed = False
+        if self.users is not None:
+            try:
+                self.users.get(id=user.id).delete()
+                removed = True
+            except Exception as e:
+                print e.message
+
+        return removed
+
+    def get_users(self):
+        return self.users.all()
+
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.channel_name)

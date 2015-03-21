@@ -13,10 +13,6 @@
                         document.getElementById("song-votes-" + data.song_id).innerHTML = data.votes;
                      });
         });
-
-        $("#testBtn").click(function() {
-            alert(player.getCurrentTime());
-        });
         
         // Construct the YouTube player
         vidId = document.getElementById("player").getAttribute("data-video-id")

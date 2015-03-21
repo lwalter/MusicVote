@@ -5,25 +5,37 @@
 <script src="{% static 'MusicVoteApp/musicChannelLib.js' %}"></script>
 <script src="{% static 'MusicVoteApp/ajaxCookieEmbed.js' %}"></script>
 <body>
-    <button id="testBtn">Test</button>
     {% csrf_token %}
     <div>
         <h1 id="channel-title" data-channel-id="{{ channel.id }}">{{ channel.channel_name }}</h1>
+    </div>
+    <div id="playlist">
         {% if songs %}
+        <h2 id="playlist">Playlist</h2>
         <div id="song-list">
-            <ul>
+            <table>
+                <tr>
+                    <th>Song</th>
+                    <th>Votes</th>
+                </tr>
                 {% for song in songs %}
-                    <li>{{ song.song_url }}</li>
-                    <h3 id="song-votes-{{ song.id }}">{{ song.votes }}</h3>
-                    <button type="button" class="voteBtn" data-song-id="{{ song.id }}">Vote</button>
+                    <tr>
+                    <td>{{ song.song_url }}</td>
+                    <td id="song-votes-{{ song.id }}">{{ song.votes }}</td>
+                    <td><button type="button" class="voteBtn" data-song-id="{{ song.id }}">Vote</button></td>
+                    </tr>
                 {% endfor %}
-            </ul>
+            </table>
         </div>
+    </div>
+    <div id="video">
         {% endif %}
         {% if song_to_play %}
             <div id="player" data-video-id="{{ song_to_play.video_id }}"></div>
         {% endif %}
-        <form id = "new_song_form" method = "post" action = "/musicchannel/{{ channel.slug }}/">
+    </div>
+    <div id="add-song">
+        <form method="post" action="/musicchannel/{{ channel.slug }}/">
             {% csrf_token %}
             {{ new_song_form.as_p }}
             <input type="submit" name="submit" value="Add song" />
