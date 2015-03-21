@@ -10,6 +10,7 @@ class MusicChannelSong(models.Model):
     def increment_votes(self):
         self.votes += 1
         self.save()
+        return self.votes
 
     def slice_video_id(self):
         return self.song_url.split("v=")[1]
@@ -36,6 +37,14 @@ class MusicChannel(models.Model):
                 song_exists = True
 
         return song_exists
+
+    def get_song_by_pk(self, song_id):
+        if self.channel_songs is not None:
+            return self.channel_songs.get(id=song_id)
+
+    def get_song_by_video_id(self, video_id):
+        if self.channel_songs is not None:
+            return self.channel_songs.get(video_id=video_id)
 
     def get_first_song(self):
         if self.channel_songs is not None:

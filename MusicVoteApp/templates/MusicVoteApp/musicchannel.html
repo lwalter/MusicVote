@@ -14,14 +14,14 @@
             <ul>
                 {% for song in songs %}
                     <li>{{ song.song_url }}</li>
-                    <h3 id="song-votes" data-song-id="{{ song.id }}">{{ song.votes }}</h3>
-                    <button type="button" class="voteBtn" value="{{ song }}">Vote</button>
+                    <h3 id="song-votes-{{ song.id }}">{{ song.votes }}</h3>
+                    <button type="button" class="voteBtn" data-song-id="{{ song.id }}">Vote</button>
                 {% endfor %}
             </ul>
         </div>
         {% endif %}
         {% if song_to_play %}
-            <div id="player" data-song-id="{{ song_to_play.video_id }}"></div>
+            <div id="player" data-video-id="{{ song_to_play.video_id }}"></div>
         {% endif %}
         <form id = "new_song_form" method = "post" action = "/musicchannel/{{ channel.slug }}/">
             {% csrf_token %}

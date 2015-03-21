@@ -1,7 +1,7 @@
 from datetime import datetime
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.http import HttpResponseRedirect, HttpResponse, Http404, JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from MusicVoteApp.models import MusicChannel, MusicChannelSong
@@ -143,6 +143,7 @@ def music_channel(request, music_channel_slug):
 
     return render(request, 'MusicVoteApp/musicchannel.html', context_dict)
 
+@login_required
 def vote(request):
     """ Handles voting posts for songs. """
 
@@ -152,26 +153,34 @@ def vote(request):
 
         try:
             musicchannel = MusicChannel.objects.get(id=musicchannel_id)
-            song = musicchannel.channel_songs.filter(video_id=song_id).get()
-            song.increment_votes()
+            song = musicchannel.get_song_by_pk(song_id)
+            votes = song.increment_votes()
         
         # TODO need to update votes element on page
         # TODO parse out exceptions (DoesNotExist, multiple returns?)
         except Exception as e:
             print e.message
     
-    return render(request, 'MusicVoteApp/musicchannel.html')
+    return JsonResponse({'votes': votes, 'song_id': song.id})
 
+@login_required
 def get_next_song(request):
-    if request.is_ajax() and 'musicchannel' in request.POST and 'song' in request.POST:
-        musicchannel_id = request.POST.get('musicchannel')
-        song_id = request.POST.get('song')
+    """ Handles an AJAX GET request for when a song ends and retrieves the next song. """
+
+    if request.is_ajax() and 'musicchannel' in request.GET and 'song' in request.GET:
+        musicchannel_id = request.GET.get('musicchannel')
+        song_id = request.GET.get('song')
 
         try:
             musicchannel = MusicChannel.objects.get(id=musicchannel_id)
-            musicchannel.remove_song(song_id)
+            song = musicchannel.get_song_by_video_id(song_id)
+            musicchannel.remove_song(song.id)
             
+            next_song = musicchannel.get_first_song()
+            next_video_id = next_song.video_id
+
         except Exception as e:
             print e.message
+            next_video_id = ""
 
-        return render(request, 'MusicVoteApp/musicchannel.html')
+    return JsonResponse({'song_to_play': next_video_id})

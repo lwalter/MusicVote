@@ -2,15 +2,16 @@
     var player = null;
     var vidId = "";
     var musicchannelId = "";
-
     $(document).ready(function() {
         musicchannelId = document.getElementById("channel-title").getAttribute("data-channel-id");
 
         $(".voteBtn").click(function() {
             $.post('/vote/',
                     {'musicchannel': musicchannelId, 
-                        'song': $(this).val()}
-            );
+                     'song': $(this).attr('data-song-id')},
+                     function(data) {
+                        document.getElementById("song-votes-" + data.song_id).innerHTML = data.votes;
+                     });
         });
 
         $("#testBtn").click(function() {
@@ -18,17 +19,17 @@
         });
         
         // Construct the YouTube player
-        vidId = document.getElementById("player").getAttribute("data-song-id")
+        vidId = document.getElementById("player").getAttribute("data-video-id")
         window.onYouTubeIframeAPIReady = function()  {
             player = new YT.Player('player', {
-            height: '390',
-            width: '640',
-            videoId: vidId,
-            events: { 
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
-                }
-            });
+                                    height: '390',
+                                    width: '640',
+                                    videoId: vidId,
+                                    events: { 
+                                        'onReady': onPlayerReady,
+                                        'onStateChange': onPlayerStateChange
+                                        }
+                                    });
         };
     });
 
@@ -43,10 +44,13 @@
     }
 
     function getNextSong() {
-        alert("Time to get the next song!")
         $.get('/get_next_song/', 
                 {'musicchannel': musicchannelId,
                  'song': vidId},
-                alert("Success"));
+                 function(data) {
+                    if (data.song_to_play != "") {
+                        player.loadVideoById(data.song_to_play);
+                    }
+                 });
     }
 -->
