@@ -1,22 +1,28 @@
 {% extends "MusicVoteApp/base.html" %}
 {% block content %}
 {% load static %}
+<script src="https://www.youtube.com/iframe_api"></script>
 <script src="{% static 'MusicVoteApp/musicChannelLib.js' %}"></script>
 <script src="{% static 'MusicVoteApp/ajaxCookieEmbed.js' %}"></script>
 <body>
-{% csrf_token %}
+    <button id="testBtn">Test</button>
+    {% csrf_token %}
     <div>
         <h1 id="channel-title" data-channel-id="{{ channel.id }}">{{ channel.channel_name }}</h1>
         {% if songs %}
         <div id="song-list">
             <ul>
                 {% for song in songs %}
-                    <li>{{ song.song_url }}   {{ song.votes }}</li><button type="button" class="voteBtn" value="{{ song }}">Vote</button>
+                    <li>{{ song.song_url }}</li>
+                    <h3 id="song-votes" data-song-id="{{ song.id }}">{{ song.votes }}</h3>
+                    <button type="button" class="voteBtn" value="{{ song }}">Vote</button>
                 {% endfor %}
             </ul>
         </div>
         {% endif %}
-        {{ song_to_play|safe }}
+        {% if song_to_play %}
+            <div id="player" data-song-id="{{ song_to_play.video_id }}"></div>
+        {% endif %}
         <form id = "new_song_form" method = "post" action = "/musicchannel/{{ channel.slug }}/">
             {% csrf_token %}
             {{ new_song_form.as_p }}

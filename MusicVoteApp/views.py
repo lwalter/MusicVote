@@ -1,11 +1,11 @@
+from datetime import datetime
 from django.shortcuts import render
-from MusicVoteApp.forms import UserForm, CreateChannelForm, AddChannelSongForm
+from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from datetime import datetime
 from MusicVoteApp.models import MusicChannel, MusicChannelSong
-from django.core.urlresolvers import reverse
+from MusicVoteApp.forms import UserForm, CreateChannelForm, AddChannelSongForm
 
 def index(request):
     """ Handles index requests. """
@@ -109,14 +109,10 @@ def music_channel(request, music_channel_slug):
         new_song_form = AddChannelSongForm(data=request.POST)
         channel = MusicChannel.objects.get(slug=music_channel_slug)
         songs = channel.get_songs()
-        song_to_play = channel.get_first_song()
 
         context_dict['new_song_form'] = new_song_form
         context_dict['channel'] = channel
         context_dict['songs'] = songs
-
-        if song_to_play is not None:
-            context_dict['song_to_play'] = song_to_play.get_iframe()
 
         if new_song_form.is_valid():
             new_song = new_song_form.save(commit=False)
@@ -125,9 +121,10 @@ def music_channel(request, music_channel_slug):
                 new_song.save()
                 channel.channel_songs.add(new_song)
                 new_song_form = AddChannelSongForm()
-                context_dict['song_to_play'] = new_song.get_iframe()
         else:
             print new_song_form.errors
+
+        context_dict['song_to_play'] = channel.get_first_song()
 
     else:
         try:
@@ -139,11 +136,7 @@ def music_channel(request, music_channel_slug):
             context_dict['new_song_form'] = new_song_form
             context_dict['channel'] = channel
             context_dict['songs'] = songs
-
-            song_to_play = channel.get_first_song()
-
-            if song_to_play is not None:
-                context_dict['song_to_play'] = song_to_play.get_iframe()
+            context_dict['song_to_play'] = channel.get_first_song()
 
         except KeyError, MusicChannel.DoesNotExist:
             raise Http404("MusicChannel does not exist")
@@ -153,7 +146,7 @@ def music_channel(request, music_channel_slug):
 def vote(request):
     """ Handles voting posts for songs. """
 
-    if request.is_ajax() and 'song' in request.POST and 'musicchannel' in request.POST:
+    if request.is_ajax() and 'musicchannel' in request.POST and 'song' in request.POST:
         musicchannel_id = request.POST.get('musicchannel')
         song_id = request.POST.get('song')
 
@@ -168,3 +161,17 @@ def vote(request):
             print e.message
     
     return render(request, 'MusicVoteApp/musicchannel.html')
+
+def get_next_song(request):
+    if request.is_ajax() and 'musicchannel' in request.POST and 'song' in request.POST:
+        musicchannel_id = request.POST.get('musicchannel')
+        song_id = request.POST.get('song')
+
+        try:
+            musicchannel = MusicChannel.objects.get(id=musicchannel_id)
+            musicchannel.remove_song(song_id)
+            
+        except Exception as e:
+            print e.message
+
+        return render(request, 'MusicVoteApp/musicchannel.html')

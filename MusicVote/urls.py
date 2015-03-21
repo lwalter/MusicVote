@@ -10,5 +10,6 @@ urlpatterns = patterns('',
     url(r'^musicchannel/(?P<music_channel_slug>[\w\-]+)/$', views.music_channel, name='musicchannel'),
     url(r'^logout_user/$', views.logout_user, name='logout_user'),
     url(r'^vote/$', views.vote, name='vote'),
+    url(r'^get_next_song/$', views.get_next_song, name='get_next_song'),
     url(r'^admin/', include(admin.site.urls)),
 )

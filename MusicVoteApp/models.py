@@ -11,9 +11,6 @@ class MusicChannelSong(models.Model):
         self.votes += 1
         self.save()
 
-    def get_iframe(self):
-        return "<iframe id='player' type='text/html' width='640' height='390' src='http://www.youtube.com/embed/{0}?enablejsapi=1' frameborder='0'></iframe>".format(self.video_id)
-
     def slice_video_id(self):
         return self.song_url.split("v=")[1]
 
@@ -42,13 +39,20 @@ class MusicChannel(models.Model):
 
     def get_first_song(self):
         if self.channel_songs is not None:
-            return self.channel_songs.order_by('id').first()
+            return self.channel_songs.order_by('votes').first()
 
     def add_song(self, new_song):
         self.channel_songs.add(new_song)
 
+    def remove_song(self, song_id):
+        if self.channel_songs is not None:
+            try:
+                self.channel_songs.get(id=song_id).delete()
+            except Exception as e:
+                print "Could not delete song: {0}".format()
+
     def get_songs(self):
-        return self.channel_songs.all()
+        return self.channel_songs.order_by('votes').all()
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.channel_name)
