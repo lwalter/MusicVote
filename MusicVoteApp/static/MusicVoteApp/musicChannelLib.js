@@ -27,6 +27,11 @@
                                         }
                                     });
         };
+
+        $("#submit-message").click(function() {
+            new_msg = $("#new-message-input").val();
+            $.post('/send_message/', {'musicchannel': musicchannelId, 'message': new_msg});
+            });
     });
 
     function onPlayerStateChange(event) {

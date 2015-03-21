@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse, Http404, JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from MusicVoteApp.models import MusicChannel, MusicChannelSong
+from MusicVoteApp.models import MusicChannel, MusicChannelSong, Message
 from MusicVoteApp.forms import UserForm, CreateChannelForm, AddChannelSongForm
 
 def index(request):
@@ -85,13 +85,13 @@ def home(request):
         if create_channel_form.is_valid():
             channel = create_channel_form.save(commit=False)
             channel.creation_date = datetime.now()
+            channel.owner = request.user
             channel.save()
 
             # Reverse avoids having to hardcode a URL w/ params
             return HttpResponseRedirect(reverse('musicchannel', args=(channel.slug,)))
         else:
             print create_channel_form.errors
-
     else:
         create_channel_form = CreateChannelForm()
 
@@ -113,6 +113,7 @@ def music_channel(request, music_channel_slug):
         context_dict['new_song_form'] = new_song_form
         context_dict['channel'] = channel
         context_dict['songs'] = songs
+        context_dict['is_owner'] = channel.is_owner(request.user)
 
         if new_song_form.is_valid():
             new_song = new_song_form.save(commit=False)
@@ -132,13 +133,12 @@ def music_channel(request, music_channel_slug):
             new_song_form = AddChannelSongForm()
             channel = MusicChannel.objects.get(slug=music_channel_slug)
             songs = channel.get_songs()
-            #users = channel.get_users()
 
             context_dict['new_song_form'] = new_song_form
             context_dict['channel'] = channel
             context_dict['songs'] = songs
             context_dict['song_to_play'] = channel.get_first_song()
-
+            context_dict['is_owner'] = channel.is_owner(request.user)
         except KeyError, MusicChannel.DoesNotExist:
             raise Http404("MusicChannel does not exist")
 
@@ -156,10 +156,9 @@ def vote(request):
             musicchannel = MusicChannel.objects.get(id=musicchannel_id)
             song = musicchannel.get_song_by_pk(song_id)
             votes = song.increment_votes()
-        
-        # TODO need to update votes element on page
-        # TODO parse out exceptions (DoesNotExist, multiple returns?)
         except Exception as e:
+            # TODO need to update votes element on page
+            # TODO parse out exceptions (DoesNotExist, multiple returns?)
             print e.message
     
     return JsonResponse({'votes': votes, 'song_id': song.id})
@@ -172,22 +171,50 @@ def get_next_song(request):
         musicchannel_id = request.GET.get('musicchannel')
         song_id = request.GET.get('song')
 
-        # Try and locate the music channel and song to remove
         try:
+            # Try and locate the music channel and song to remove
             musicchannel = MusicChannel.objects.get(id=musicchannel_id)
             song = musicchannel.get_song_by_video_id(song_id)
             musicchannel.remove_song(song.id)
-
-        except Exception as e:
-            print e.message
-
-        # Try and get the next song to play
-        try:
+    
+            # Try and get the next song to play
             next_song = musicchannel.get_first_song()
             next_video_id = next_song.video_id
-
         except Exception as e:
             print e.message
             next_video_id = ""
 
     return JsonResponse({'song_to_play': next_video_id})
+
+@login_required
+def send_message(request):
+    """ Handles an AJAX POST request to send a chat message. """
+
+    if request.is_ajax() and 'musicchannel' in request.POST and 'message' in request.POST:
+        musicchannel_id = request.POST.get('musicchannel')
+        message_text = request.POST.get('message')
+
+        print message_text
+        try:
+            musicchannel = MusicChannel.objects.get(id=musicchannel_id)
+            message = Message(message_text=message_text, posted_by=request.user, date_posted=datetime.now())
+            message.save()
+
+            musicchannel.add_message(message)
+        except Exception as e:
+            print e.message
+
+@login_required
+def get_messages(request):
+    """ Handles an AJAX GET request for the chat messages. """
+
+    if request.is_ajax() and 'musicchannel' in request.GET:
+        musicchannel_id = request.GET.get('musicchannel')
+
+        try:
+            musicchannel = MusicChannel.objects.get(id=musicchannel_id)
+            messages = musicchannel.messages
+        except Exception as e:
+            print e.message
+
+    return JsonResponse({'messages': messages})

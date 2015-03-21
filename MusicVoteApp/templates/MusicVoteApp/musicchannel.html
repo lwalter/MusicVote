@@ -9,8 +9,23 @@
     <div>
         <h1 id="channel-title" data-channel-id="{{ channel.id }}">{{ channel.channel_name }}</h1>
     </div>
+    <div id="channel-chat">
+        <h2>Chat</h2>
+        {% if messages %}        
+        <ul>
+            {% for message in messages %}
+            <li>[message.posted_by]: message.message_text</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <input type="text" id="new-message-input" />
+        <button type="button" id="submit-message">Submit</button>
+    </div>
+    {% if song_to_play %}
+        <div id="player" data-video-id="{{ song_to_play.video_id }}"></div>
+    {% endif %}
+    {% if songs %}
     <div id="playlist">
-        {% if songs %}
         <h2 id="playlist">Playlist</h2>
         <div id="song-list">
             <table>
@@ -28,12 +43,8 @@
             </table>
         </div>
     </div>
-    <div id="video">
-        {% endif %}
-        {% if song_to_play %}
-            <div id="player" data-video-id="{{ song_to_play.video_id }}"></div>
-        {% endif %}
-    </div>
+    {% endif %}
+    {% if is_owner %}
     <div id="add-song">
         <form method="post" action="/musicchannel/{{ channel.slug }}/">
             {% csrf_token %}
@@ -41,5 +52,6 @@
             <input type="submit" name="submit" value="Add song" />
         </form>
     </div>
+    {% endif %}
 </body>
 {% endblock %}

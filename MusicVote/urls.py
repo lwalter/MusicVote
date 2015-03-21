@@ -11,5 +11,6 @@ urlpatterns = patterns('',
     url(r'^logout_user/$', views.logout_user, name='logout_user'),
     url(r'^vote/$', views.vote, name='vote'),
     url(r'^get_next_song/$', views.get_next_song, name='get_next_song'),
+    url(r'^send_message/$', views.send_message, name='send_message'),
     url(r'^admin/', include(admin.site.urls)),
 )

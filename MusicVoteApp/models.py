@@ -3,9 +3,9 @@ from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
 
 class MusicChannelSong(models.Model):
-    song_url = models.URLField(max_length = 200)
-    video_id = models.CharField(max_length = 100)
-    votes = models.IntegerField(default = 0)
+    song_url = models.URLField(max_length=200)
+    video_id = models.CharField(max_length=100)
+    votes = models.IntegerField(default=0)
 
     def increment_votes(self):
         self.votes += 1
@@ -23,13 +23,23 @@ class MusicChannelSong(models.Model):
 
     def __unicode__(self):
         return "{0}".format(self.video_id)
+        
+class Message(models.Model):
+    message_text = models.TextField(blank=False)
+    posted_by = models.ForeignKey(User, blank=False)
+    date_posted = models.DateTimeField('date posted')
+
+    def __unicode__(self):
+        return "{0} [{1}]: {2}".format(self.posted_by, self.date_posted, self.message_text)
 
 class MusicChannel(models.Model):
-    channel_name = models.CharField(max_length = 50, unique = True)
+    channel_name = models.CharField(max_length=50, unique=True)
     creation_date = models.DateTimeField('date created')
-    slug = models.SlugField(unique = True)
+    slug = models.SlugField(unique=True)
     channel_songs = models.ManyToManyField(MusicChannelSong)
-    users = models.ManyToManyField(User)
+    #users = models.ManyToManyField(User)
+    owner = models.ForeignKey(User, blank=False)
+    messages = models.ManyToManyField(Message)
 
     def song_exists(self, song_url):
         song_exists = False
@@ -49,7 +59,7 @@ class MusicChannel(models.Model):
 
     def get_first_song(self):
         if self.channel_songs is not None:
-            return self.channel_songs.order_by('votes').first()
+            return self.channel_songs.order_by('-votes').first()
 
     def add_song(self, new_song):
         self.channel_songs.add(new_song)
@@ -68,7 +78,7 @@ class MusicChannel(models.Model):
     def get_songs(self):
         return self.channel_songs.order_by('votes').all()
 
-    def add_user(self, user):
+    """def add_user(self, user):
         self.users.add(user)
 
     def remove_user(self, user):
@@ -84,7 +94,12 @@ class MusicChannel(models.Model):
 
     def get_users(self):
         return self.users.all()
+    """
+    def is_owner(self, user):
+        return self.owner == user
 
+    def add_message(self, new_message):
+        self.messages.add(new_message)
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.channel_name)
@@ -92,12 +107,3 @@ class MusicChannel(models.Model):
 
     def __unicode__(self):
         return "{0}".format(self.channel_name)
-
-class Message(models.Model):
-    message_text = models.TextField()
-    posted_by = models.ForeignKey(User)
-    channel_name = models.ForeignKey(MusicChannel)
-    date_posted = models.DateTimeField('date posted')
-    
-    def __unicode__(self):
-        return "{0} [{1}]: {2}".format(self.posted_by, self.date_posted, self.message_text)
