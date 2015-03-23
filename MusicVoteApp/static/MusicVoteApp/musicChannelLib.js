@@ -4,7 +4,8 @@
     var musicchannelId = "";
     $(document).ready(function() {
         musicchannelId = document.getElementById("channel-title").getAttribute("data-channel-id");
-
+        vidId = document.getElementById("player").getAttribute("data-video-id")
+        
         $(".voteBtn").click(function() {
             $.post('/vote/',
                     {'musicchannel': musicchannelId, 
@@ -14,8 +15,11 @@
                      });
         });
         
-        // Construct the YouTube player
-        vidId = document.getElementById("player").getAttribute("data-video-id")
+        $("#submit-message").click(function() {
+            $.post('/send_message/', 
+                    {'musicchannel': musicchannelId, 'message': $("#new-message-input").val()});
+        });
+
         window.onYouTubeIframeAPIReady = function()  {
             player = new YT.Player('player', {
                                     height: '390',
@@ -27,11 +31,6 @@
                                         }
                                     });
         };
-
-        $("#submit-message").click(function() {
-            new_msg = $("#new-message-input").val();
-            $.post('/send_message/', {'musicchannel': musicchannelId, 'message': new_msg});
-            });
     });
 
     function onPlayerStateChange(event) {
@@ -54,4 +53,20 @@
                     }
                  });
     }
+
+    (function poll() {
+        setTimeout(function() {
+            $.ajax({
+                url: '/get_messages/',
+                data: {'musicchannel': musicchannelId},
+                type: 'GET',
+                success: function(data) {
+                    document.getElementById('#chatlist').innerHTML = data.messages;
+                },
+                dataType: 'json',
+                complete: poll,
+                timeout: 2000
+            })
+        }, 5000);
+    })();
 -->

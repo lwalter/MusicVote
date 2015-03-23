@@ -139,6 +139,7 @@ def music_channel(request, music_channel_slug):
             context_dict['songs'] = songs
             context_dict['song_to_play'] = channel.get_first_song()
             context_dict['is_owner'] = channel.is_owner(request.user)
+            context_dict['messages'] = channel.messages.all()
         except KeyError, MusicChannel.DoesNotExist:
             raise Http404("MusicChannel does not exist")
 
@@ -194,7 +195,6 @@ def send_message(request):
         musicchannel_id = request.POST.get('musicchannel')
         message_text = request.POST.get('message')
 
-        print message_text
         try:
             musicchannel = MusicChannel.objects.get(id=musicchannel_id)
             message = Message(message_text=message_text, posted_by=request.user, date_posted=datetime.now())
@@ -208,13 +208,19 @@ def send_message(request):
 def get_messages(request):
     """ Handles an AJAX GET request for the chat messages. """
 
+    print "Getting messages..."
     if request.is_ajax() and 'musicchannel' in request.GET:
         musicchannel_id = request.GET.get('musicchannel')
 
         try:
             musicchannel = MusicChannel.objects.get(id=musicchannel_id)
-            messages = musicchannel.messages
+            
+            print "Musicchannel: ", musicchannel
+            messages = musicchannel.messages.all()
+
+            messages_html = musicchannel.generate_message_html()
         except Exception as e:
             print e.message
 
-    return JsonResponse({'messages': messages})
+    print "Returning json... ", messages_html 
+    return JsonResponse({'messages': messages_html})

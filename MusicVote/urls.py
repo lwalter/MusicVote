@@ -12,5 +12,6 @@ urlpatterns = patterns('',
     url(r'^vote/$', views.vote, name='vote'),
     url(r'^get_next_song/$', views.get_next_song, name='get_next_song'),
     url(r'^send_message/$', views.send_message, name='send_message'),
+    url(r'^get_messages/$', views.get_messages, name='get_messages'),
     url(r'^admin/', include(admin.site.urls)),
 )

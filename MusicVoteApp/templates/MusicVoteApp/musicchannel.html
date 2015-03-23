@@ -9,15 +9,17 @@
     <div>
         <h1 id="channel-title" data-channel-id="{{ channel.id }}">{{ channel.channel_name }}</h1>
     </div>
-    <div id="channel-chat">
+    <div id="chatarea">
         <h2>Chat</h2>
-        {% if messages %}        
-        <ul>
-            {% for message in messages %}
-            <li>[message.posted_by]: message.message_text</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
+        <div id="chatbox">
+            {% if messages %}        
+            <ul id="chatlist">
+                {% for message in messages %}
+                <li>[{{ message.posted_by }}]: {{ message.message_text }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
         <input type="text" id="new-message-input" />
         <button type="button" id="submit-message">Submit</button>
     </div>
@@ -35,9 +37,9 @@
                 </tr>
                 {% for song in songs %}
                     <tr>
-                    <td>{{ song.song_url }}</td>
-                    <td id="song-votes-{{ song.id }}">{{ song.votes }}</td>
-                    <td><button type="button" class="voteBtn" data-song-id="{{ song.id }}">Vote</button></td>
+                        <td>{{ song.song_url }}</td>
+                        <td id="song-votes-{{ song.id }}">{{ song.votes }}</td>
+                        <td><button type="button" class="voteBtn" data-song-id="{{ song.id }}">Vote</button></td>
                     </tr>
                 {% endfor %}
             </table>

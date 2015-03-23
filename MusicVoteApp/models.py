@@ -29,6 +29,9 @@ class Message(models.Model):
     posted_by = models.ForeignKey(User, blank=False)
     date_posted = models.DateTimeField('date posted')
 
+    def get_html(self):
+        return "<li>[{0}]: {1}</li>".format(self.posted_by, self.message_text)
+
     def __unicode__(self):
         return "{0} [{1}]: {2}".format(self.posted_by, self.date_posted, self.message_text)
 
@@ -100,6 +103,17 @@ class MusicChannel(models.Model):
 
     def add_message(self, new_message):
         self.messages.add(new_message)
+
+    def generate_message_html(self):
+        html = ""
+        
+        if self.messages is not None:
+            html = "<ul>"
+            for msg in self.messages.all():
+                html += msg.get_html()
+            html += "</ul>"
+
+        return html
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.channel_name)
