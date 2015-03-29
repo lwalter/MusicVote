@@ -51,33 +51,31 @@
     list-style-type: none;
 }
 
+#channel-page {
+    display: inline-block;
+}
+
+#playlist {
+    display: inline-block;
+}
+
 #song-list table {
-    float: right;
+    display: inline-block;
     position: relative;
     list-style-type: none;
 }
 
-#song-list div {
-    background: #eee8e8;
+td {
+    padding: 5px;
 }
 
 #video div {
     float: left;
-    position: relative;
 }
 
-#playlist div {
-    float: right;
-    position: relative;
-}
-
-#playlist h2 {
-    float: right;
-    position: relative;
-}
-
-#add-song div {
-    float: right;
+#chatarea {
+    width: 400px;
+    float: left;
 }
 
 #chatbox {
@@ -92,6 +90,12 @@
     padding-right: 100px;
 }
 
-td {
-    padding: 5px;
+#chatlist {
+    float: left;
+    list-style-type: none;
+}
+
+#new-message-input {
+    height: 20px;
+    width: 295px;
 }

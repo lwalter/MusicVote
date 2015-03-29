@@ -10,25 +10,22 @@
         <h1 id="channel-title" data-channel-id="{{ channel.id }}">{{ channel.channel_name }}</h1>
     </div>
     <div id="chatarea">
-        <h2>Chat</h2>
         <div id="chatbox">
-            {% if messages %}        
             <ul id="chatlist">
-                {% for message in messages %}
-                <li>[{{ message.posted_by }}]: {{ message.message_text }}</li>
-                {% endfor %}
+                {% if messages %} 
+                    {% for message in messages %}
+                    <li>{{ message.posted_by }}: {{ message.message_text }}</li>
+                    {% endfor %}
+                {% endif %}
             </ul>
-            {% endif %}
         </div>
         <input type="text" id="new-message-input" />
-        <button type="button" id="submit-message">Submit</button>
+        <button type="button" id="submit-message">Send</button>
     </div>
-    {% if song_to_play %}
-        <div id="player" data-video-id="{{ song_to_play.video_id }}"></div>
-    {% endif %}
-    {% if songs %}
+    <div id="player" data-video-id="{{ song_to_play.video_id }}"></div>
     <div id="playlist">
-        <h2 id="playlist">Playlist</h2>
+        <h2 id="playlist-title">Playlist</h2>
+        {% if songs %}
         <div id="song-list">
             <table>
                 <tr>
@@ -36,24 +33,22 @@
                     <th>Votes</th>
                 </tr>
                 {% for song in songs %}
-                    <tr>
-                        <td>{{ song.song_url }}</td>
+                    <tr id="playlist-row-{{ song.id }}">
+                        <td>{{ song.title }}</td>
                         <td id="song-votes-{{ song.id }}">{{ song.votes }}</td>
                         <td><button type="button" class="voteBtn" data-song-id="{{ song.id }}">Vote</button></td>
                     </tr>
                 {% endfor %}
             </table>
         </div>
+        {% endif %}
+        {% if is_owner %}
+            <form method="post" action="/musicchannel/{{ channel.slug }}/">
+                {% csrf_token %}
+                {{ new_song_form.as_p }}
+                <input type="submit" name="submit" value="Add song" />
+            </form>
+        {% endif %}
     </div>
-    {% endif %}
-    {% if is_owner %}
-    <div id="add-song">
-        <form method="post" action="/musicchannel/{{ channel.slug }}/">
-            {% csrf_token %}
-            {{ new_song_form.as_p }}
-            <input type="submit" name="submit" value="Add song" />
-        </form>
-    </div>
-    {% endif %}
 </body>
 {% endblock %}

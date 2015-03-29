@@ -1,3 +1,5 @@
+import urllib2
+import xmltodict
 from django.db import models
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
@@ -6,6 +8,7 @@ class MusicChannelSong(models.Model):
     song_url = models.URLField(max_length=200)
     video_id = models.CharField(max_length=100)
     votes = models.IntegerField(default=0)
+    title = models.CharField(max_length=200)
 
     def increment_votes(self):
         self.votes += 1
@@ -15,9 +18,25 @@ class MusicChannelSong(models.Model):
     def slice_video_id(self):
         return self.song_url.split("v=")[1]
 
+    def retrieve_title(self):
+        if self.video_id != "":
+            video_xml = urllib2.urlopen("http://gdata.youtube.com/feeds/api/videos/{0}?v=2&fields=title".format(self.video_id))
+            
+            try:
+                data = video_xml.read()
+                video_xml.close()
+            except Exception as e:
+                print e.message
+
+            data = xmltodict.parse(data)
+            return data.get('entry').get('title')
+
     def save(self, *args, **kwargs):
         if self.video_id == "": 
             self.video_id = self.slice_video_id()
+
+        if self.title == "":
+            self.title = self.retrieve_title()
 
         super(MusicChannelSong, self).save(*args, **kwargs)
 
@@ -30,10 +49,10 @@ class Message(models.Model):
     date_posted = models.DateTimeField('date posted')
 
     def get_html(self):
-        return "<li>[{0}]: {1}</li>".format(self.posted_by, self.message_text)
+        return "<li>{0}: {1}</li>".format(self.posted_by, self.message_text)
 
     def __unicode__(self):
-        return "{0} [{1}]: {2}".format(self.posted_by, self.date_posted, self.message_text)
+        return "{0} {1}: {2}".format(self.posted_by, self.date_posted, self.message_text)
 
 class MusicChannel(models.Model):
     channel_name = models.CharField(max_length=50, unique=True)
@@ -79,7 +98,7 @@ class MusicChannel(models.Model):
         return removed
 
     def get_songs(self):
-        return self.channel_songs.order_by('votes').all()
+        return self.channel_songs.order_by('-votes').all()
 
     """def add_user(self, user):
         self.users.add(user)
@@ -108,10 +127,8 @@ class MusicChannel(models.Model):
         html = ""
         
         if self.messages is not None:
-            html = "<ul>"
             for msg in self.messages.all():
                 html += msg.get_html()
-            html += "</ul>"
 
         return html
 

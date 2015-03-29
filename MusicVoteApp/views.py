@@ -199,28 +199,23 @@ def send_message(request):
             musicchannel = MusicChannel.objects.get(id=musicchannel_id)
             message = Message(message_text=message_text, posted_by=request.user, date_posted=datetime.now())
             message.save()
-
             musicchannel.add_message(message)
         except Exception as e:
             print e.message
 
+    return JsonResponse({'message': message.get_html()})
+
 @login_required
 def get_messages(request):
     """ Handles an AJAX GET request for the chat messages. """
-
-    print "Getting messages..."
+    
     if request.is_ajax() and 'musicchannel' in request.GET:
         musicchannel_id = request.GET.get('musicchannel')
 
         try:
             musicchannel = MusicChannel.objects.get(id=musicchannel_id)
-            
-            print "Musicchannel: ", musicchannel
-            messages = musicchannel.messages.all()
-
             messages_html = musicchannel.generate_message_html()
         except Exception as e:
             print e.message
 
-    print "Returning json... ", messages_html 
     return JsonResponse({'messages': messages_html})
