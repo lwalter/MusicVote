@@ -27,13 +27,13 @@
         <h2 id="playlist-title">Playlist</h2>
         {% if songs %}
         <div id="song-list">
-            <table>
+            <table id="playlist-table">
                 <tr>
                     <th>Song</th>
                     <th>Votes</th>
                 </tr>
                 {% for song in songs %}
-                    <tr id="playlist-row-{{ song.id }}">
+                    <tr id="playlist-row-{{ song.video_id }}">
                         <td>{{ song.title }}</td>
                         <td id="song-votes-{{ song.id }}">{{ song.votes }}</td>
                         <td><button type="button" class="voteBtn" data-song-id="{{ song.id }}">Vote</button></td>

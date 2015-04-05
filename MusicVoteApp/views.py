@@ -114,7 +114,8 @@ def music_channel(request, music_channel_slug):
         context_dict['channel'] = channel
         context_dict['songs'] = songs
         context_dict['is_owner'] = channel.is_owner(request.user)
-
+        context_dict['messages'] = channel.messages.order_by('date_posted').all()
+        
         if new_song_form.is_valid():
             new_song = new_song_form.save(commit=False)
 
@@ -126,7 +127,6 @@ def music_channel(request, music_channel_slug):
             print new_song_form.errors
 
         context_dict['song_to_play'] = channel.get_first_song()
-
     else:
         try:
             # Try and find a music channel name slug with the given name
@@ -139,7 +139,7 @@ def music_channel(request, music_channel_slug):
             context_dict['songs'] = songs
             context_dict['song_to_play'] = channel.get_first_song()
             context_dict['is_owner'] = channel.is_owner(request.user)
-            context_dict['messages'] = channel.messages.all()
+            context_dict['messages'] = channel.messages.order_by('date_posted').all()
         except KeyError, MusicChannel.DoesNotExist:
             raise Http404("MusicChannel does not exist")
 
@@ -205,17 +205,17 @@ def send_message(request):
 
     return JsonResponse({'message': message.get_html()})
 
-@login_required
-def get_messages(request):
-    """ Handles an AJAX GET request for the chat messages. """
-    
+def polling(request):
+    """ Handles the AJAX GET polling request. Retrieves messages and playlist. """
+
     if request.is_ajax() and 'musicchannel' in request.GET:
         musicchannel_id = request.GET.get('musicchannel')
 
         try:
             musicchannel = MusicChannel.objects.get(id=musicchannel_id)
+            playlist_html = musicchannel.generate_playlist_html()
             messages_html = musicchannel.generate_message_html()
         except Exception as e:
             print e.message
 
-    return JsonResponse({'messages': messages_html})
+    return JsonResponse({'messages': messages_html, 'playlist': playlist_html})

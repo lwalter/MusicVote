@@ -31,6 +31,15 @@ class MusicChannelSong(models.Model):
             data = xmltodict.parse(data)
             return data.get('entry').get('title')
 
+    def get_html(self):
+        tr_start = "<tr id='playlist-row-{0}'>".format(self.video_id)
+        td_title = "<td>{0}</td>".format(self.title)
+        td_votes = "<td id='song-votes-{0}'>{1}</td>".format(self.id, self.votes)
+        td_button = "<td><button type='button' class='voteBtn' data-song-id='{0}'>Vote</button></td>".format(self.id)
+        tr_end = "</tr>"
+
+        return tr_start + td_title + td_votes + td_button + tr_end
+
     def save(self, *args, **kwargs):
         if self.video_id == "": 
             self.video_id = self.slice_video_id()
@@ -127,8 +136,18 @@ class MusicChannel(models.Model):
         html = ""
         
         if self.messages is not None:
-            for msg in self.messages.all():
+            for msg in self.messages.order_by('date_posted').all():
+                #print msg.get_html()
                 html += msg.get_html()
+
+        return html
+
+    def generate_playlist_html(self):
+        html = ""
+
+        if self.channel_songs is not None:
+            for song in self.channel_songs.order_by('-votes').all():
+                html += song.get_html()
 
         return html
 
